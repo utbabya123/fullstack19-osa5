@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import BlogForm from './components/BlogForm'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import './App.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -10,7 +12,7 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
-  const [errorMessage, setErrorMessage] = useState(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -37,6 +39,7 @@ const App = () => {
 
       const newBlog = await blogService.create(blogObject)
       setBlogs(blogs.concat(newBlog))
+      displayNotification('message', `a new blog ${newBlog.title} by ${newBlog.author} added`)
     } catch (err) {
       console.log(err)
     }
@@ -49,22 +52,17 @@ const App = () => {
         username,
         password
       })
-
       blogService.setToken(user.token)
-      console.log(blogService.getToken())
       window.localStorage.setItem(
         'loggedBlogappUser', JSON.stringify(user)
       )
 
       setUser(user)
       setUsername('')
-      setPassword('')
+      setPassword('')   
     } catch (err) {
       console.log(err)
-      setErrorMessage('käyttäjätunnus tai salasana virheellinen')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 3000)
+      displayNotification('error', 'wrong username or password')
     }
   }
 
@@ -73,9 +71,25 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogappUser')
   }
 
+  const displayNotification = (type, content) => {
+    if (type === 'message') {
+      setMessage(content)
+      setTimeout(() => {
+        setMessage('')
+      }, 3000)
+    } else {
+      setError(content)
+      setTimeout(() => {
+        setError('')
+      }, 3000)
+    }
+  }
+
   if (user === null) {
     return (
       <div>
+        <Notification content={error} type='error' /> 
+        <Notification content={message} type='message' />
         <h2>Log in to application</h2>
         <form onSubmit={handleLogin}>
           <div>
@@ -104,6 +118,8 @@ const App = () => {
 
   return (
     <div>
+      <Notification content={error} type='error' /> 
+      <Notification content={message} type='message' />
       <h2>blogs</h2>
       <p>{user.username} logged in </p><button onClick={handleLogout}>logout</button>
       <BlogForm addBlog={addBlog} />

@@ -13,11 +13,13 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [formVisible, setFormVisible] = useState(false)
 
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs( blogs )
-    )  
+    blogService.getAll().then(blogs => {
+      blogs.sort((a, b) => b.likes - a.likes)
+      setBlogs(blogs)
+    })  
   }, [])
 
   useEffect(() => {
@@ -36,10 +38,32 @@ const App = () => {
         author,
         url
       }
-
       const newBlog = await blogService.create(blogObject)
       setBlogs(blogs.concat(newBlog))
       displayNotification('message', `a new blog ${newBlog.title} by ${newBlog.author} added`)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const logBlogs = () => {
+    console.log('!!!', blogs)
+  }
+
+  const handleLike = async (event, blog) => {
+    event.stopPropagation()
+    try {
+      const blogObject = {
+        ...blog,
+        likes: blog.likes + 1,
+        user: blog.user ? blog.user.id : null
+      }
+
+      const newBlog = await blogService.update(blogObject.id, blogObject)
+      const newBlogs = [...blogs].map(blog => blog.id === newBlog.id ? newBlog : blog)
+      newBlogs.sort((a, b) => b.likes - a.likes)
+
+      setBlogs(newBlogs)
     } catch (err) {
       console.log(err)
     }
@@ -85,6 +109,23 @@ const App = () => {
     }
   }
 
+  const blogForm = () => {
+    const hideWhenVisible = { display: formVisible ? 'none' : '' }
+    const showWhenVisible = { display: formVisible ? '' : 'none' }
+
+    return (
+      <div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setFormVisible(true)}>create new</button>
+        </div>
+        <div style={showWhenVisible}>
+          <BlogForm addBlog={addBlog} setFormVisible={setFormVisible}/>
+          <button onClick={() => setFormVisible(false)}>cancel</button>
+        </div>
+      </div>
+    )
+  }
+
   if (user === null) {
     return (
       <div>
@@ -118,13 +159,14 @@ const App = () => {
 
   return (
     <div>
+      <button onClick={logBlogs}>tulosta</button>
       <Notification content={error} type='error' /> 
       <Notification content={message} type='message' />
       <h2>blogs</h2>
       <p>{user.username} logged in </p><button onClick={handleLogout}>logout</button>
-      <BlogForm addBlog={addBlog} />
+      {blogForm()}
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} handleLike={handleLike} blog={blog} />
       )}
     </div>
   )

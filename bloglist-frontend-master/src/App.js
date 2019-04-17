@@ -17,9 +17,8 @@ const App = () => {
 
   useEffect(() => {
     blogService.getAll().then(blogs => {
-      blogs.sort((a, b) => b.likes - a.likes)
       setBlogs(blogs)
-    })  
+    })
   }, [])
 
   useEffect(() => {
@@ -46,8 +45,16 @@ const App = () => {
     }
   }
 
-  const logBlogs = () => {
-    console.log('!!!', blogs)
+  const deleteBlog = async (event, blog) => {
+    event.stopPropagation()
+    try {
+      if (window.confirm(`remove ${blog.title} by ${blog.author}`)) {
+        await blogService.remove(blog.id)
+        setBlogs(blogs.filter(b => b.id !== blog.id))
+      }
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const handleLike = async (event, blog) => {
@@ -61,14 +68,13 @@ const App = () => {
 
       const newBlog = await blogService.update(blogObject.id, blogObject)
       const newBlogs = [...blogs].map(blog => blog.id === newBlog.id ? newBlog : blog)
-      newBlogs.sort((a, b) => b.likes - a.likes)
 
       setBlogs(newBlogs)
     } catch (err) {
       console.log(err)
     }
   }
-    
+
   const handleLogin = async (event) => {
     event.preventDefault()
     try {
@@ -83,7 +89,7 @@ const App = () => {
 
       setUser(user)
       setUsername('')
-      setPassword('')   
+      setPassword('')
     } catch (err) {
       console.log(err)
       displayNotification('error', 'wrong username or password')
@@ -129,7 +135,7 @@ const App = () => {
   if (user === null) {
     return (
       <div>
-        <Notification content={error} type='error' /> 
+        <Notification content={error} type='error' />
         <Notification content={message} type='message' />
         <h2>Log in to application</h2>
         <form onSubmit={handleLogin}>
@@ -159,14 +165,13 @@ const App = () => {
 
   return (
     <div>
-      <button onClick={logBlogs}>tulosta</button>
-      <Notification content={error} type='error' /> 
+      <Notification content={error} type='error' />
       <Notification content={message} type='message' />
       <h2>blogs</h2>
       <p>{user.username} logged in </p><button onClick={handleLogout}>logout</button>
       {blogForm()}
-      {blogs.map(blog =>
-        <Blog key={blog.id} handleLike={handleLike} blog={blog} />
+      {blogs.sort((a, b) => b.likes - a.likes).map(blog =>
+        <Blog key={blog.id} deleteBlog={deleteBlog} currentUser={user} handleLike={handleLike} blog={blog} />
       )}
     </div>
   )

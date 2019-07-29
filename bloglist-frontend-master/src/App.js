@@ -4,13 +4,14 @@ import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import useField from './hooks/index'
 import './App.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const { reset: resetUsername, ...username } = useField('text')
+  const { reset: resetPassword, ...password } = useField('password')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [formVisible, setFormVisible] = useState(false)
@@ -51,6 +52,7 @@ const App = () => {
       if (window.confirm(`remove ${blog.title} by ${blog.author}`)) {
         await blogService.remove(blog.id)
         setBlogs(blogs.filter(b => b.id !== blog.id))
+        displayNotification('message', 'blog removed')
       }
     } catch (err) {
       console.log(err)
@@ -79,18 +81,19 @@ const App = () => {
     event.preventDefault()
     try {
       const user = await loginService.login({
-        username,
-        password
+        username: username.value,
+        password: password.value
       })
       blogService.setToken(user.token)
       window.localStorage.setItem(
         'loggedBlogappUser', JSON.stringify(user)
       )
-
+      resetUsername()
+      resetPassword()
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (err) {
+      resetUsername()
+      resetPassword()
       console.log(err)
       displayNotification('error', 'wrong username or password')
     }
@@ -141,21 +144,11 @@ const App = () => {
         <form onSubmit={handleLogin}>
           <div>
             käyttäjätunnus
-            <input
-              type="text"
-              value={username}
-              name="Username"
-              onChange={({ target }) => setUsername(target.value)}
-            />
+            <input {...username} />
           </div>
           <div>
             salasana
-            <input
-              type="password"
-              value={password}
-              name="Password"
-              onChange={({ target }) => setPassword(target.value)}
-            />
+            <input {...password} />
           </div>
           <button type="submit">kirjaudu</button>
         </form>

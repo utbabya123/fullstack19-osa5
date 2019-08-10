@@ -13,23 +13,19 @@ const Blog = ({ blog, handleLike, currentUser, deleteBlog }) => {
 
   if (!visible) {
     return (
-      <div style={blogStyle}>
-        <div onClick={() => setVisible(true)}>
-          {blog.title} {blog.author}
-        </div>
+      <div onClick={() => setVisible(true)} style={blogStyle} className='blogSimple'>
+        {blog.title} {blog.author}
       </div>
     )
   }
 
   return (
-    <div style={blogStyle}>
-      <div onClick={() => setVisible(false)}>
-        <p>{blog.title} {blog.author}</p>
-        <p>{blog.url}</p>
-        <p>{blog.likes} <button onClick={(event) => handleLike(event, blog)}>like</button></p>
-        <p>added by {blog.user !== undefined ? blog.user.name : 'anonymous'}</p>
-        {blog.user.username === currentUser.username && <button onClick={(event) => deleteBlog(event, blog)}>remove</button>}
-      </div>
+    <div onClick={() => setVisible(false)} style={blogStyle} className='blogFull'>
+      <p>{blog.title} {blog.author}</p>
+      <p>{blog.url}</p>
+      <p>{blog.likes} <button onClick={(event) => handleLike(event, blog)}>like</button></p>
+      <p>added by {blog.user !== undefined ? blog.user.name : 'anonymous'}</p>
+      {blog.user.username === currentUser.username && <button onClick={(event) => deleteBlog(event, blog)}>remove</button>}
     </div>
   )
 }

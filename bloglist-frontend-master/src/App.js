@@ -141,7 +141,7 @@ const App = () => {
         <Notification content={error} type='error' />
         <Notification content={message} type='message' />
         <h2>Log in to application</h2>
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} className='loginform'>
           <div>
             käyttäjätunnus
             <input {...username} />
@@ -150,7 +150,7 @@ const App = () => {
             salasana
             <input {...password} />
           </div>
-          <button type="submit">kirjaudu</button>
+          <button type='submit'>kirjaudu</button>
         </form>
       </div>
     )
@@ -163,9 +163,11 @@ const App = () => {
       <h2>blogs</h2>
       <p>{user.username} logged in </p><button onClick={handleLogout}>logout</button>
       {blogForm()}
-      {blogs.sort((a, b) => b.likes - a.likes).map(blog =>
-        <Blog key={blog.id} deleteBlog={deleteBlog} currentUser={user} handleLike={handleLike} blog={blog} />
-      )}
+      <div className='bloglist'>
+        {blogs.sort((a, b) => b.likes - a.likes).map(blog =>
+          <Blog key={blog.id} deleteBlog={deleteBlog} currentUser={user} handleLike={handleLike} blog={blog} />
+        )}
+      </div>
     </div>
   )
 }
